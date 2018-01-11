@@ -4,7 +4,7 @@
   "base_lr":0.0002,
   "max_step": 100,
   "network_version": "pytorch",
-  "dataset_name": "sunny2rainy_train",
+  "dataset_name": "sunny2foggy_train",
   "do_flipping": 1,
   "_LAMBDA_A": 10,
   "_LAMBDA_B": 10

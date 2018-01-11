@@ -9,10 +9,14 @@ from scipy.misc import imsave
 import click
 import tensorflow as tf
 
-from . import cyclegan_datasets
-from . import data_loader, losses, model
+import cyclegan_datasets
+import data_loader, losses, model
+
+import time
 
 slim = tf.contrib.slim
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+tf_config=tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True),allow_soft_placement=True)
 
 
 class CycleGAN:
@@ -195,9 +199,16 @@ class CycleGAN:
         with open(os.path.join(
                 self._output_dir, 'epoch_' + str(epoch) + '.html'
         ), 'w') as v_html:
+            spent_time = 0.0
             for i in range(0, self._num_imgs_to_save):
                 print("Saving image {}/{}".format(i, self._num_imgs_to_save))
+                #start_time = time.time()
                 inputs = sess.run(self.inputs)
+                
+                #test one image
+                #fake_A_temp = sess.run(self.fake_images_a, feed_dict={self.input_a:inputs['images_i'],self.input_b: inputs['images_j']})
+                #spent_time += time.time()-start_time
+
                 fake_A_temp, fake_B_temp, cyc_A_temp, cyc_B_temp = sess.run([
                     self.fake_images_a,
                     self.fake_images_b,
@@ -221,6 +232,7 @@ class CycleGAN:
                         os.path.join('imgs', image_name) + "\">"
                     )
                 v_html.write("<br>")
+            #print('average time: {:.2} ms\n'.format(spent_time/self._num_imgs_to_save*1000))
 
     def fake_image_pool(self, num_fakes, fake, fake_pool):
         """
@@ -259,11 +271,11 @@ class CycleGAN:
         # Initializing the global variables
         init = (tf.global_variables_initializer(),
                 tf.local_variables_initializer())
-        saver = tf.train.Saver()
+        saver = tf.train.Saver(max_to_keep=20)
 
         max_images = cyclegan_datasets.DATASET_TO_SIZES[self._dataset_name]
 
-        with tf.Session() as sess:
+        with tf.Session(config=tf_config) as sess:
             sess.run(init)
 
             # Restore the model to run the model from last checkpoint
@@ -282,15 +294,16 @@ class CycleGAN:
             # Training Loop
             for epoch in range(sess.run(self.global_step), self._max_step):
                 print("In the epoch ", epoch)
-                saver.save(sess, os.path.join(
-                    self._output_dir, "cyclegan"), global_step=epoch)
+                if epoch%10 == 0 or epoch == self._max_step-1:
+                    saver.save(sess, os.path.join(
+                        self._output_dir, "cyclegan"), global_step=epoch)
 
                 # Dealing with the learning rate as per the epoch number
-                if epoch < 100:
+                if epoch < 50:
                     curr_lr = self._base_lr
                 else:
                     curr_lr = self._base_lr - \
-                        self._base_lr * (epoch - 100) / 100
+                        self._base_lr * (epoch - 50) / 50
 
                 self.save_images(sess, epoch)
 
@@ -384,7 +397,7 @@ class CycleGAN:
         saver = tf.train.Saver()
         init = tf.global_variables_initializer()
 
-        with tf.Session() as sess:
+        with tf.Session(config=tf_config) as sess:
             sess.run(init)
 
             chkpt_fname = tf.train.latest_checkpoint(self._checkpoint_dir)

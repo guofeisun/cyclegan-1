@@ -1,0 +1,1 @@
+python main.py --to_train=1 --log_dir=output/cyclegan/exp_01_road_unity3d --config_filename=configs/exp_01_s2r.json

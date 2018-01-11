@@ -1,0 +1,1 @@
+python main.py --to_train=0 --log_dir=output/cyclegan/exp_01_road --config_filename=configs/exp_01_s2r_test.json --checkpoint_dir=output/cyclegan/exp_01_road/sunny2rainy_train_2

@@ -1,0 +1,1 @@
+python create_cyclegan_dataset.py --image_path_a=/media/sunguofei/DATA1/road_data/processed/sunny/train --image_path_b=/media/sunguofei/DATA1/road_data/processed/rainy/train --dataset_name="sunny2rainy_train" --do_shuffle=0
